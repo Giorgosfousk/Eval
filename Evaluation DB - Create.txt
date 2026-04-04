@@ -1,0 +1,293 @@
+DROP TABLE IF EXISTS company;
+CREATE TABLE company
+(
+ 	AFM     char(9) NOT NULL,
+ 	DOY     varchar(15) NOT NULL,
+ 	name    varchar(35) NOT NULL,
+ 	phone   bigint(16) NOT NULL,
+	street  varchar(15) NOT NULL,
+ 	num     tinyint(4) NOT NULL,
+ 	city    varchar(15) NOT NULL,
+ 	country varchar(15) NOT NULL,
+
+	PRIMARY KEY (AFM)
+);
+
+DROP TABLE IF EXISTS user;
+CREATE TABLE user
+(
+ 	username     varchar(12) NOT NULL,
+ 	password     varchar(10) NOT NULL,
+	name         varchar(25) NOT NULL,
+ 	surname      varchar(35) NOT NULL,
+ 	reg_date     datetime NOT NULL,
+ 	email        varchar(30) NOT NULL,
+ 	firm         char(9) NOT NULL,
+ 	admin_rights enum('0','1') NOT NULL,
+
+	PRIMARY KEY (username),
+	CONSTRAINT WORKSIN
+	FOREIGN KEY (firm) REFERENCES company (AFM)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS degree;
+CREATE TABLE degree
+(
+ 	title     varchar(50) NOT NULL,
+ 	grade     enum('high-school','university','master','phd') NOT NULL,
+ 	institute varchar(40) NOT NULL,
+
+	PRIMARY KEY (title, institute)
+);
+
+DROP TABLE IF EXISTS employee;
+CREATE TABLE employee
+(
+ 	username        varchar(12) NOT NULL,
+ 	bio             text NOT NULL,
+	recommendations varchar(35) NULL,
+ 	certificates    varchar(35) NULL,
+ 	awards          varchar(35) NULL,
+ 	exp_years       tinyint(4) NOT NULL,
+
+	PRIMARY KEY (username),
+	CONSTRAINT EMPLISUSER
+	FOREIGN KEY (username) REFERENCES user(username)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS evaluator;
+CREATE TABLE evaluator
+(
+ 	username  varchar(12) NOT NULL,
+ 	exp_years tinyint(4) NOT NULL,
+
+	PRIMARY KEY (username),
+	CONSTRAINT EVALUATORISUSER
+	FOREIGN KEY (username) REFERENCES user (username)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS job;
+CREATE TABLE job
+(
+	id              int(4) NOT NULL AUTO_INCREMENT,
+	start_date      date NOT NULL,
+	salary          float(6,1) NOT NULL,
+	position        varchar(40) NOT NULL,
+	seat            varchar(45) NOT NULL,
+	evaluator       varchar(12) NOT NULL,
+	announce_date   datetime NOT NULL,
+	submission_date date NOT NULL,
+	firm            char(9) NOT NULL,
+
+	PRIMARY KEY (id),
+	CONSTRAINT EVALUATORFORJOB
+	FOREIGN KEY (evaluator) REFERENCES evaluator (username)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT JOBINCOMPANY
+	FOREIGN KEY (firm) REFERENCES company (AFM)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS evaluation_process;
+CREATE TABLE evaluation_process
+(
+ 	ev_id 			     int(4) NOT NULL AUTO_INCREMENT,
+ 	employee 			 varchar(12) NOT NULL,
+ 	job_id               int(4) NOT NULL,
+ 	eval1   			 int(4) NULL,
+ 	eval2    			 int(4) NULL,
+ 	eval3                int(4) NULL,
+ 	evaluation_finalized enum('yes','no') NOT NULL,
+ 	comments 			 varchar(255) NULL,
+
+	PRIMARY KEY (ev_id, employee, job_id),
+	CONSTRAINT EVALPROCESSFOREMPL
+	FOREIGN KEY (employee) REFERENCES employee (username)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT EVALPROCESSFORJOB
+	FOREIGN KEY (job_id) REFERENCES job (id)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS evaluation_results; 
+CREATE TABLE evaluation_results
+(
+ 	ev_id    int(4) NOT NULL,
+ 	employee varchar(12) NOT NULL,
+ 	job_id   int(4) NOT NULL,
+ 	grade    int(4) NULL,
+ 	comments varchar(255) NULL,
+
+	PRIMARY KEY (ev_id, employee, job_id),
+	CONSTRAINT EVALRESFOREMPL
+	FOREIGN KEY (employee) REFERENCES evaluation_process(employee)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT EVALPROCESS
+	FOREIGN KEY (ev_id) REFERENCES evaluation_process(ev_id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT EVALRESFORJOB
+	FOREIGN KEY (job_id) REFERENCES job (id)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS has_degree;
+CREATE TABLE has_degree
+(
+	degr_title     varchar(50) NOT NULL,
+	degr_institute varchar(40) NOT NULL,
+	employee       varchar(12) NOT NULL,
+	year           year(4) NOT NULL,
+	grade          float(3,1) NOT NULL,
+
+	PRIMARY KEY (degr_title, degr_institute, employee),
+	CONSTRAINT DEGREE
+	FOREIGN KEY (degr_title, degr_institute) REFERENCES degree (title, institute)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT EMPLWITHDEGREE
+	FOREIGN KEY (employee) REFERENCES employee (username)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS languages;
+CREATE TABLE languages
+(
+	employee varchar(12) NOT NULL,
+	lang     set('en','fr','sp','gr') NOT NULL,
+
+	PRIMARY KEY (employee, lang),
+	CONSTRAINT EMPLSPEAKSLANG
+	FOREIGN KEY (employee) REFERENCES employee (username)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS manager;
+CREATE TABLE manager
+(
+	managerUsername varchar(12) NOT NULL,
+	exp_years       tinyint(4) NOT NULL,
+
+	PRIMARY KEY (managerUsername),
+	CONSTRAINT MANAGERISUSER
+	FOREIGN KEY (managerUsername) REFERENCES user (username)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS subject;
+CREATE TABLE subject
+(
+	title      varchar(36) NOT NULL,
+	descr      tinytext NULL,
+	belongs_to varchar(36) NULL,
+
+	PRIMARY KEY (title),
+	CONSTRAINT SUBCATEGORY
+	FOREIGN KEY (belongs_to) REFERENCES subject (title)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS needs;
+CREATE TABLE needs
+(
+	job_id        int(4) NOT NULL,
+	subject_title varchar(36) NOT NULL,
+
+	PRIMARY KEY (job_id, subject_title),
+	CONSTRAINT JOBREF
+	FOREIGN KEY (job_id) REFERENCES job (id)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT NEEDEDSUBJECT
+	FOREIGN KEY (subject_title) REFERENCES subject (title)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS project;
+CREATE TABLE project
+(
+	num      tinyint(4) NOT NULL,
+	employee varchar(12) NOT NULL,
+	descr    text NOT NULL,
+	url      varchar(60) NOT NULL,
+
+	PRIMARY KEY (num, employee),
+	CONSTRAINT DONEBY
+	FOREIGN KEY (employee) REFERENCES employee (username)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS reports;
+CREATE TABLE reports
+(
+	employee        varchar(12) NOT NULL,
+	report          text NOT NULL,
+	managerUsername varchar(12) NOT NULL,
+	report_date     date NOT NULL,
+
+	PRIMARY KEY (employee),
+	CONSTRAINT REPORTFOR
+	FOREIGN KEY (employee) REFERENCES employee (username)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT REPORTBY
+	FOREIGN KEY (managerUsername) REFERENCES manager (managerUsername)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS requests_evaluation;
+CREATE TABLE requests_evaluation
+(
+	employee varchar(12) NOT NULL,
+	job_id   int(4) NOT NULL,
+
+	PRIMARY KEY (employee, job_id),
+	CONSTRAINT EVALFOREMPLOYEE
+	FOREIGN KEY (employee) REFERENCES employee (username)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT EVALFORJOB
+	FOREIGN KEY (job_id) REFERENCES job (id)
+	ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS log;
+CREATE TABLE log
+(
+	id       int NOT NULL AUTO_INCREMENT,
+	username  varchar(12) NOT NULL,
+	log_text text NOT NULL,
+	log_date datetime NOT NULL,
+	table_affected    enum('job','employee','requests_evaluation') NOT NULL,
+	action   enum('insert','delete','update') NOT NULL,
+	done     enum('success','fail') NOT NULL,
+
+	PRIMARY KEY (id)
+);
+
+DROP TABLE IF EXISTS current_usr;
+CREATE TABLE current_usr
+(
+	no 		  INT NOT NULL,
+	username  varchar(12) NOT NULL,
+
+	PRIMARY KEY (username)
+);
+
+DROP TABLE IF EXISTS requests_evaluation;
+DROP TABLE IF EXISTS reports;
+DROP TABLE IF EXISTS project;	
+DROP TABLE IF EXISTS needs;
+DROP TABLE IF EXISTS subject;
+DROP TABLE IF EXISTS manager;
+DROP TABLE IF EXISTS languages;
+DROP TABLE IF EXISTS has_degree;
+DROP TABLE IF EXISTS evaluation_results;
+DROP TABLE IF EXISTS evaluation_process;
+DROP TABLE IF EXISTS job;
+DROP TABLE IF EXISTS evaluator;
+DROP TABLE IF EXISTS employee;
+DROP TABLE IF EXISTS degree;
+DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS company;
+
+
+

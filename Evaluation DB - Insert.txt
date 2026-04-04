@@ -1,0 +1,88 @@
+INSERT INTO company VALUES
+("456789132","A ATHINON","GIANT AE", 00302104565462,"AGIOU MELETIOU", 33, "ATHINA", "GREECE"),
+("156124832","A PEIRAIA","TRITON", 00302104565462, "AKTI TZELEPI", 127, "PEIRAIAS", "GREECE"),
+("865046458","EKSOTERIKOU","NAZDRAVI", 0420604704307, "LISTOPADU", 25, "PRAGUE", "CZECHIA");
+
+INSERT INTO user VALUES
+("livanat532", "livagg2002", "AGGELOS", "LIVANIOS","2019-01-01 16:25:04", "aglivanios@gmail.com","456789132" , "0"),
+("kalantas42", "kalnik2009", "NIKOS", "KALANTAS", "2019-02-01 12:29:42", "nikoskalantas@yahoo.com","456789132", "0"),
+("dogkanos100", "dogzax2002", "ZAXOS", "DOGKANOS","2019-01-01 15:02:27", "zdogkanos@devora.gr","456789132", "0"),
+("hrs_18", "haradmin2", "HARIS", "TZELEPIS","2000-07-18 15:20:05", "htzelepis8@gmail.com", "456789132", "1");
+
+INSERT INTO user VALUES
+("mavrotsouk", "mavdio2020", "DIONYSIS", "MAVROTSOUKALOS", "2020-01-01 12:00:00", "dmavrotsouk@mpirar.gr","865046458", "0"),
+("fffousekis", "fougio2000", "GIORGOS", "FOUSEKIS", "2020-01-01 12:00:00", "fousekismef@thival.gr","865046458", "0"),
+("simtripsidis", "tritak2007", "TAKIS", "TRIPISIDIS", "2020-08-14 14:40:26", "tripsidakis@oaed.gr","865046458", "0"),
+("hgt3", "gioadmin1", "GIORGOS", "FOUSKARIS", "2000-01-06 14:30:00", "fouskarisg@hotmail.com","865046458", "1");
+
+INSERT INTO user VALUES
+("papadak1", "papgio2019", "GIORGOS", "PAPADAKIS", "2020-06-01 11:10:02", "giopap@ant1.com", "156124832", "0"),
+("theotokatos", "theale2018", "ALEXANDROS", "THEOTOKATOS", "2018-07-30 11:05:45", "altheot@paparoup.gr","156124832", "0"),
+("matsamplokos", "matnik2004", "NIKOS", "MATSAMPLOKOS", "2018-07-29 15:00:18", "matsamplokos@hotmail.com","156124832", "0"),
+("kavourdiris", "kavkos2015", "KOSTAS", "KAVOURDIRIS", "2018-07-30 08:02:07", "kavourdiris@windowslive.com","156124832", "0");
+
+INSERT INTO manager VALUES
+("fffousekis",1),
+("matsamplokos",3),
+("kalantas42",2);
+
+INSERT INTO evaluator VALUES
+("dogkanos100",2),
+("theotokatos",3),
+("mavrotsouk",1),
+("papadak1",1);
+
+INSERT INTO employee VALUES
+("kavourdiris","Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.","AI PROMISING PROSPECT","UNIVERSITY DEGREE IN AI","EMPLOYEE OF THE MONTH 12/2019",3),
+("simtripsidis","Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.","AI PROMISING PROSPECT","DISTINCTION IN IEEE WORKSHOP","EMPLOYEE OF THE MONTH 12/2020",1),
+("livanat532","Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.","DB PROMISING PROSPECT","DISTINCTION IN SQL SEMINAR","EMPLOYEE OF THE MONTH 09/2019",2);
+
+INSERT INTO job VALUES 
+(NULL,"2020-04-01", 2300, "AI API PROGRAMMER", "ATHINA", "mavrotsouk", "2020-01-01 10:00:00", "2020-03-31", "865046458"),
+(NULL,"2020-05-01", 2500, "AI PROGRAMMER", "PEIRAIAS", "theotokatos", "2020-04-01 15:30:20", "2020-04-30", "156124832"),
+(NULL,"2020-10-01", 11000, "HEAD OF SOFTWARE", "PATRAS", "dogkanos100", "2020-08-01 09:00:00", "2020-09-30", "456789132");
+
+INSERT INTO subject VALUES
+("AI","Programming Python for smart apps", NULL),
+("AI API SPECIALISATION","API Handling and Integration","AI"),
+("BD","Design and Maintain DBs", NULL),
+("PROJECT MANAGEMENT","Handling of resources for cost efficiency", NULL);
+
+INSERT INTO needs VALUES
+(1,"AI API Specialisation"),
+(2,"AI"),
+(3,"PROJECT MANAGEMENT");
+
+INSERT INTO languages VALUES
+("kavourdiris","GR");
+INSERT INTO languages VALUES
+("kavourdiris","EN");
+
+INSERT INTO degree VALUES
+("HANDLING OF AI FOR ADVANCED IMPLEMENTATIONS", "master", "UNIVERSITY OF PATRAS"),
+("COMPUTER ENGINEERING AND INFORMATICS", "university", "UNIVERSITY OF PATRAS"),
+("COMPUTER SCIENCE", "university", "UNIVERSITY OF LAUSSANE");
+
+INSERT INTO has_degree VALUES
+("HANDLING OF AI FOR ADVANCED IMPLEMENTATIONS","UNIVERSITY OF PATRAS","kavourdiris",2014,8.2);
+
+INSERT INTO requests_evaluation VALUES
+("simtripsidis", 1),
+("kavourdiris", 2),
+("livanat532", 3);
+
+INSERT INTO evaluation_process VALUES
+(NULL, "simtripsidis", 1, 3, 4, 2, "yes", "Excellent candidate"),
+(NULL, "kavourdiris", 2, 4, 4, 1, "yes", "Excellent candidate"),
+(NULL, "livanat532", 3, 2, 2, 1, "yes", "Moderate candidate");
+
+INSERT INTO evaluation_results VALUES 
+(1, "simtripsidis", 1, 9, "Excellent candidate"),
+(2, "kavourdiris", 2, 9, "Excellent candidate"),
+(3, "livanat532", 3, 5, "Moderate candidate");
+
+INSERT INTO reports VALUES
+("kavourdiris", "Motivated employee. Hard-working and eager to learn. All assigned tasks are completed on time and in detail.", "matsamplokos", "2020-12-01");
+
+INSERT INTO current_usr VALUES
+(1,"local_admin");

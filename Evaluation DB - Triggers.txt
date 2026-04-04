@@ -1,0 +1,320 @@
+4.1]
+DROP TRIGGER IF EXISTS logInsertJob;
+DELIMITER $
+
+CREATE TRIGGER logInsertJob
+BEFORE INSERT ON job
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'job','insert','success');
+END$
+
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logUpdateJob;
+DELIMITER $
+
+CREATE TRIGGER logUpdateJob
+BEFORE UPDATE ON job
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'job','update','success');
+END$
+
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logInsertJob;
+DELIMITER $
+
+CREATE TRIGGER logInsertJob
+BEFORE INSERT ON job
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'job','insert','success');
+END$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logDeleteJob;
+DELIMITER $
+
+CREATE TRIGGER logDeleteJob
+BEFORE DELETE ON job
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'job','delete','success');
+END$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logUpdateEmployee;
+DELIMITER $
+
+CREATE TRIGGER logUpdateEmployee
+BEFORE UPDATE ON employee
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'employee','update','success');
+END$
+
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logInsertEmployee;
+DELIMITER $
+
+CREATE TRIGGER logInsertEmployee
+BEFORE INSERT ON employee
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'employee','insert','success');
+END$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logDeleteEmployee;
+DELIMITER $
+
+CREATE TRIGGER logDeleteEmployee
+BEFORE DELETE ON employee
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'employee','delete','success');
+END$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logUpdateRequestsEvaluation;
+DELIMITER $
+
+CREATE TRIGGER logUpdateRequestsEvaluation
+BEFORE UPDATE ON requests_evaluation
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'requests_evaluation','update','success');
+END$
+
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logInsertRequestsEvaluation;
+DELIMITER $
+
+CREATE TRIGGER logInsertRequestsEvaluation
+BEFORE INSERT ON requests_evaluation
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'requests_evaluation','insert','success');
+END$
+DELIMITER ;
+
+
+DROP TRIGGER IF EXISTS logDeleteRequestsEvaluation;
+DELIMITER $
+
+CREATE TRIGGER logDeleteRequestsEvaluation
+BEFORE DELETE ON requests_evaluation
+FOR EACH ROW
+BEGIN
+	DECLARE currentUser VARCHAR(24);
+	SELECT username INTO currentUser
+	FROM current_usr
+	WHERE no=1;
+	INSERT INTO log(id,username,log_text,log_date,table_affected,action,done)
+	VALUES(NULL,currentUser,'Action Attempted',CURRENT_TIMESTAMP(),'requests_evaluation','delete','success');
+END$
+DELIMITER ;
+
+
+4.2]
+DROP TRIGGER IF EXISTS checkUpdateOnCompany;
+DELIMITER $
+
+CREATE TRIGGER checkUpdateOnCompany
+BEFORE UPDATE ON company
+FOR EACH ROW
+BEGIN
+	IF(NEW.AFM<>OLD.AFM) THEN
+		SET NEW.AFM=OLD.AFM;
+	END IF;
+	IF(NEW.DOY<>OLD.DOY) THEN
+		SET NEW.DOY=OLD.DOY;
+	END IF;
+	IF(NEW.name<>OLD.name) THEN
+		SET NEW.name=OLD.name;
+	END IF;
+END$
+
+DELIMITER ;
+
+
+4.3]
+DROP TRIGGER IF EXISTS checkUpdateOnUser;
+DELIMITER $
+
+CREATE TRIGGER checkUpdateOnUser
+BEFORE UPDATE ON user
+FOR EACH ROW
+BEGIN
+	DECLARE currentUsr VARCHAR(12);
+	DECLARE isManager VARCHAR(12);
+	DECLARE isEmployee VARCHAR(12);
+	DECLARE adminRights VARCHAR(5);
+
+	SELECT username INTO currentUsr
+	FROM current_usr 
+	WHERE no=1;
+
+	SELECT managerUsername INTO isManager
+	FROM manager 
+	WHERE managerUsername=currentUsr;
+
+	SELECT username INTO isEmployee
+	FROM employee 
+	WHERE username=currentUsr;
+
+	IF (currentUsr="local_admin") THEN
+		SET adminRights="1";
+	ELSE
+		SELECT admin_rights INTO adminRights FROM user WHERE username=currentUsr;
+	END IF;
+
+	IF(adminRights="0") THEN
+		IF(NEW.username<>OLD.username) THEN
+			SET NEW.username=OLD.username;
+		END IF;
+
+		IF(NEW.reg_date<>OLD.reg_date) THEN
+			SET NEW.reg_date=OLD.reg_date;
+		END IF;
+
+		IF(NEW.firm<>OLD.firm) THEN
+			SET NEW.firm=OLD.firm;
+		END IF;
+
+		IF(NEW.admin_rights<>OLD.admin_rights) THEN
+			SET NEW.admin_rights=OLD.admin_rights;
+		END IF;
+
+		IF(NEW.name<>OLD.name) THEN
+			IF(isManager IS NOT NULL OR isEmployee IS NOT NULL) THEN
+				SET NEW.name=OLD.name;
+			END IF;
+		END IF;
+
+		IF(NEW.surname<>OLD.surname) THEN
+			IF(isManager IS NOT NULL OR isEmployee IS NOT NULL) THEN
+				SET NEW.surname=OLD.surname;
+			END IF;
+		END IF;
+		
+		IF(NEW.email<>OLD.email) THEN
+			IF(isEmployee IS NOT NULL) THEN
+				SET NEW.email=OLD.email;
+			END IF;
+		END IF;
+	END IF;	
+END$
+
+
+DELIMITER ;
+
+
+
+Extra Triggers:
+
+DROP TRIGGER IF EXISTS incrementProjectNo;
+DELIMITER $
+
+CREATE TRIGGER incrementProjectNo
+BEFORE INSERT ON project
+FOR EACH ROW
+BEGIN
+	DECLARE max_num INT;
+	SELECT MAX(num) INTO max_num
+	FROM project
+	WHERE employee=NEW.employee;
+	IF (max_num IS NULL) THEN
+		SET NEW.num=1;
+	ELSE
+		SET NEW.num=max_num+1;
+	END IF;
+END$
+
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS addEvaluationProcess;
+DELIMITER $
+
+CREATE TRIGGER addEvaluationProcess
+AFTER INSERT ON requests_evaluation
+FOR EACH ROW
+BEGIN
+	DECLARE employeeUsername VARCHAR(12);
+	DECLARE jobId INT(4);
+
+	SET employeeUsername=NEW.employee;
+	SET jobId=NEW.job_id;
+	INSERT INTO evaluation_process VALUES(NULL,employeeUsername,jobId,NULL,NULL,NULL,"no",NULL);	
+END$
+
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS removeEvaluationProcess;
+DELIMITER $
+
+CREATE TRIGGER removeEvaluationProcess
+AFTER DELETE ON requests_evaluation
+FOR EACH ROW
+BEGIN
+	DELETE FROM evaluation_process WHERE evaluation_process.employee=OLD.employee AND evaluation_process.job_id=OLD.job_id;
+END$
+
+DELIMITER ;

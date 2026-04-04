@@ -1,0 +1,191 @@
+// Το procedure της 3.2 δεν λειτουργεί όπως αναμένεται.
+3.1]
+DROP PROCEDURE IF EXISTS requestsAndEvaluation;
+DELIMITER $
+
+CREATE PROCEDURE requestsAndEvaluation (IN emplName VARCHAR(25),IN emplSurname VARCHAR(35))
+	BEGIN
+		DECLARE finishedFlag INT;
+		DECLARE requestsJob INT(4);
+		DECLARE evaluationId INT(4);
+		DECLARE finalGrade INT(4);
+		DECLARE Eval1 INT(4);
+		DECLARE Eval2 INT(4);
+		DECLARE Eval3 INT(4);
+		DECLARE isFinalized CHAR(4);
+		DECLARE evaluator_name VARCHAR(12);
+		DECLARE evaluator_surname VARCHAR(12);
+
+		DECLARE jCursor CURSOR FOR
+		SELECT evaluation_process.ev_id, evaluation_process.job_id,  evaluation_process.eval1, evaluation_process.eval2, evaluation_process.eval3, evaluation_process.evaluation_finalized, evaluation_results.grade
+		FROM evaluation_process
+		LEFT JOIN evaluation_results ON evaluation_process.ev_id=evaluation_results.ev_id
+		WHERE evaluation_process.employee IN(
+		SELECT username
+		FROM user
+		WHERE name=emplName AND surname=emplSurname
+		);
+
+		DECLARE reqCursor CURSOR FOR
+		SELECT job_id
+		FROM requests_evaluation		
+		WHERE employee IN(
+		SELECT username
+		FROM user
+		WHERE name=emplName AND surname=emplSurname
+		);
+
+		DECLARE CONTINUE HANDLER FOR NOT FOUND 
+		SET finishedFlag=1;
+
+		OPEN reqCursor;		
+		SET finishedFlag=0;
+		FETCH reqCursor INTO requestsJob;
+
+		WHILE (finishedFlag=0) DO
+			SELECT name, surname INTO evaluator_name, evaluator_surname
+			FROM user
+			WHERE username IN (
+			SELECT evaluator
+			FROM job
+			WHERE id=requestsJob);
+			SELECT requestsJob, evaluator_name, evaluator_surname;
+			FETCH reqCursor INTO requestsJob;
+		END WHILE;
+		CLOSE reqCursor;
+
+		OPEN jCursor;
+		SET finishedFlag=0;
+		FETCH jCursor INTO evaluationId, requestsJob, Eval1, Eval2, Eval3, isFinalized, finalGrade;
+
+		WHILE (finishedFlag=0) DO
+			SELECT name, surname INTO evaluator_name, evaluator_surname
+			FROM user
+			WHERE username IN (
+			SELECT evaluator
+			FROM job
+			WHERE id=requestsJob);
+			IF (isFinalized='no') THEN
+				SELECT 'Evaluation in Process';
+				SELECT requestsJob, Eval1, Eval2, Eval3, evaluator_name, evaluator_surname;
+			ELSE
+				SELECT requestsJob, finalGrade, evaluator_name, evaluator_surname;
+			END IF;
+			FETCH jCursor INTO evaluationId, requestsJob, Eval1, Eval2, Eval3, isFinalized, finalGrade;
+		END WHILE;
+		CLOSE jCursor;		
+	END$
+
+DELIMITER ;
+CALL requestsAndEvaluation ("KOSTAS","KAVOURDIRIS");
+
+3.2] X
+DROP PROCEDURE IF EXISTS finalizeEvaluation;
+DELIMITER $
+
+CREATE PROCEDURE finalizeEvaluation(IN jobId INT(4),IN evaluatorUsername VARCHAR(12))
+BEGIN
+	DECLARE evaluationId INT(4);
+	DECLARE sum INT(4);
+	DECLARE evalFinalized enum('yes','no');
+	DECLARE Eval1 INT(4);
+	DECLARE Eval2 INT(4);
+	DECLARE Eval3 INT(4);
+	DECLARE Employee VARCHAR(12);
+	DECLARE Comments VARCHAR(255);
+	DECLARE finishedFlag INT;
+	DECLARE evalCursor CURSOR FOR
+	SELECT ev_id, employee, eval1, eval2, eval3, evaluation_finalized, comments 
+	FROM evaluation_process
+	WHERE job_id=jobId;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	SET finishedFlag=1;
+
+	OPEN evalCursor;
+	SET finishedFlag=0;
+
+	FETCH evalCursor INTO evaluationId, Employee, Eval1, Eval2, Eval3, evalFinalized, Comments;
+	WHILE(finishedFlag=0) DO
+		IF(evalFinalized='no' AND Eval1 IS NOT NULL AND Eval2 IS NOT NULL AND Eval3 IS NOT NULL) THEN
+			UPDATE evaluation_process
+			SET evaluation_finalized='yes'
+			WHERE ev_id=evaluationId; 
+
+			SET sum=Eval1+Eval2+Eval3;
+			INSERT INTO evaluation_results
+			VALUES (evaluation_id, Employee, jobId, sum, Comments);
+		END IF;
+
+		FETCH evalCursor INTO evaluationId, Employee, Eval1, Eval2, Eval3, evalFinalized, Comments;
+	END WHILE;
+	CLOSE evalCursor;
+END$
+
+DELIMITER ;
+
+CALL finalizeEvaluation(2,"theotokatos");
+
+3.3]
+DROP PROCEDURE IF EXISTS allIsFinalized;
+DELIMITER $
+CREATE PROCEDURE allIsFinalized(IN jobId INT(4))
+BEGIN
+	DECLARE employeeUsername VARCHAR(12);
+	DECLARE evalGrade INT(4);
+	DECLARE pendingApplications INT;
+	DECLARE finishedFlag INT;
+	DECLARE evalCursor CURSOR FOR
+	SELECT evaluation_results.employee, grade
+	FROM evaluation_process
+	LEFT JOIN evaluation_results ON evaluation_process.ev_id=evaluation_results.ev_id
+	WHERE evaluation_process.job_id=jobId
+	ORDER BY grade DESC;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND
+	SET finishedFlag=1;
+
+	SET finishedFlag=0;
+	OPEN evalCursor;
+
+	FETCH evalCursor INTO employeeUsername, evalGrade;
+
+	IF (finishedFlag=1) THEN
+		SELECT 'No applications for the job yet';
+	ELSE
+		SELECT COUNT(*) INTO pendingApplications
+		FROM evaluation_process
+		WHERE job_id=jobId AND evaluation_finalized="no";
+		IF(pendingApplications=0) THEN
+			SELECT 'Finalized Tables';
+		ELSE
+			SELECT 'Evaluation in progress...';
+			SELECT pendingApplications AS NumberOfPendingApplications;
+		END IF;
+	END IF;	
+	
+	WHILE(finishedFlag=0) DO
+		SELECT name, surname, evalGrade
+		FROM user
+		WHERE username=employeeUsername;
+		
+		FETCH evalCursor INTO employeeUsername, evalGrade;
+	END WHILE;
+	CLOSE evalCursor;
+END$
+
+DELIMITER ;
+
+CALL allIsFinalized(2);
+
+
+
+Extra Procedures:
+
+DROP PROCEDURE IF EXISTS setCurrentUser;
+DELIMITER $
+
+CREATE PROCEDURE setCurrentUser(IN userName VARCHAR(24))
+BEGIN
+	UPDATE current_usr SET username=userName WHERE no=1;
+END$
+
+DELIMITER ;
